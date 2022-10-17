@@ -1,0 +1,52 @@
+% matlab .m file
+clear
+
+rho = 0.01:0.01:0.1;
+eta = 0.01:0.01:0.1;
+k = [];
+N = 1000;
+beta = 0.2;
+
+for i=1:10
+    for j=1:10
+        G(i,j)=-32*exp(4)*log(eta(j)/2)/((rho(i)^2/2)*N);
+        K_s(i,j)=1;
+        while(K_s(i,j)^2+2*K_s(i,j)<G(i,j))
+            K_s(i,j)=K_s(i,j)+1;
+        end
+    end
+end
+ 
+for i=1:10
+    for j=1:10
+        %iter = 0;
+        K = K_s(i,j);
+        PP = 1;
+        while(PP>eta(j))
+            iter = 0;
+            for m =1:N
+                s_rep=[];
+                k=randperm(N,1);
+                s=double(k<=round(N*beta));
+                p_hat=0;
+                p=0;
+                for kk=1:K
+                    ss=randperm(10,1);
+                    ss=double(ss<=beta*10);
+                    s_rep(kk)=double(xor(s,ss));
+                end  
+                beta_e=min(mean(s_rep),1-mean(s_rep));
+                p_hat=binocdf((K+1)/2,K,beta_e);
+                p=binocdf((K+1)/2,K,beta);
+                if abs(p_hat-p)>=rho(i)/2 && p_hat>=1-rho(i)/2
+                    iter=iter+1;
+                end
+            end
+            PP=iter/N;
+            
+            K=K+2;
+        end
+        
+        K_min(i,j)=K;
+    end
+end
